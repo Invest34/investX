@@ -1,0 +1,72 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #1e1e2e;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.withdraw-container {
+    background: #282a36;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+}
+
+.withdraw-container h2 {
+    color: #ff79c6;
+    font-size: 22px;
+    margin-bottom: 15px;
+}
+
+.withdraw-container label {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 8px;
+    text-align: left;
+}
+
+.withdraw-container input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #44475a;
+    border-radius: 5px;
+    background: #44475a;
+    color: white;
+    font-size: 16px;
+}
+
+.withdraw-container input:focus {
+    border-color: #50fa7b;
+    outline: none;
+}
+
+.withdraw-container button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    background: #50fa7b;
+    color: black;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.withdraw-container button:hover {
+    background: #69ff94;
+}
+
+@media (max-width: 768px) {
+    .withdraw-container {
+        width: 95%;
+    }
+}

@@ -1,0 +1,95 @@
+/* styles5.css */
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #121212; /* Dark background */
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.investment-container {
+    background-color: #1e1e2f;
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 420px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+}
+
+h2 {
+    color: #ffcc00;
+    font-size: 24px;
+}
+
+p {
+    font-size: 16px;
+    margin: 8px 0;
+}
+
+.payment-details {
+    background-color: #29293d;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    text-align: left;
+}
+
+.payment-details h3 {
+    color: #ffcc00;
+    font-size: 20px;
+}
+
+.payment-details p {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+input[type="file"] {
+    background-color: #2a2a3f;
+    color: #fff;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    margin-top: 10px;
+    width: 100%;
+    cursor: pointer;
+}
+
+button {
+    background-color: #ffcc00;
+    color: #121212;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    margin-top: 12px;
+    width: 100%;
+}
+
+button:hover {
+    background-color: #e6b800;
+}
+
+.hidden {
+    display: none;
+}
+
+#confirmation-message {
+    color: #4CAF50;
+    font-weight: bold;
+    margin-top: 12px;
+}

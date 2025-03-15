@@ -1,0 +1,94 @@
+/* styles.css */
+body {
+    background-color: #1e1e2e;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.dashboard-container {
+    width: 90%;
+    max-width: 900px;
+    background: #282a36;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #44475a;
+    padding-bottom: 15px;
+}
+
+.header-buttons button {
+    padding: 10px 15px;
+    margin-left: 10px;
+    border: none;
+    border-radius: 5px;
+    background: #ff79c6;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.header-buttons button:hover {
+    background: #ff92d0;
+}
+
+h1, h2 {
+    color: #ff79c6;
+}
+
+.plans, .active-plans {
+    margin-top: 20px;
+}
+
+.plan {
+    background: #44475a;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    margin-bottom: 15px;
+}
+
+.plan h3 {
+    color: #50fa7b;
+}
+
+.plan p {
+    color: #f8f8f2;
+}
+
+.plan button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    background: #50fa7b;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.plan button:hover {
+    background: #69ff94;
+}
+
+@media (min-width: 600px) {
+    .plans {
+        display: flex;
+        justify-content: space-between;
+    }
+    .plan {
+        width: 30%;
+    }
+}

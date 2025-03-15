@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="styles2.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Login</h2>
+        <form id="login-form">
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        <p id="message"></p>
+    </div>
+    
+    <script>
+        document.getElementById("login-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value.trim();
+            const message = document.getElementById("message");
+
+            const socket = new WebSocket("ws://localhost:5001");
+
+            socket.onopen = function() {
+                socket.send(JSON.stringify({ type: "login", email, password }));
+            };
+
+            socket.onmessage = function(event) {
+                try {
+                    const response = JSON.parse(event.data);
+                    
+                    if (response.status === "success") {
+                        message.innerText = response.message;
+                        message.style.color = "green";
+
+                        // Store user info in localStorage (Optional)
+                        localStorage.setItem("userId", response.userId);
+                        localStorage.setItem("username", response.username);
+
+                        setTimeout(() => {
+                            window.location.href = "dashboard.html"; // Redirect to dashboard
+                        }, 1000);
+                    } else {
+                        message.innerText = response.message;
+                        message.style.color = "red";
+                    }
+                } catch (error) {
+                    message.innerText = "Error processing response.";
+                    message.style.color = "red";
+                }
+            };
+
+            socket.onerror = function() {
+                message.innerText = "Connection error. Please try again.";
+                message.style.color = "red";
+            };
+        });
+    </script>
+</body>
+</html>

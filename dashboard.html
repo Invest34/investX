@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InvestXPro Dashboard</title>
+    <link rel="stylesheet" href="styles3.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header>
+            <h1>Welcome to InvestXPro</h1>
+            <div class="header-buttons">
+                <button id="withdraw">Withdraw</button>
+                <button id="logout">Logout</button>
+            </div>
+        </header>
+        <main>
+            <section class="active-plans">
+                <h2>Active Investments</h2>
+                <div id="active-plans-list">
+                    <p>Loading investments...</p>
+                </div>
+            </section>
+            <section class="investment-plans">
+                <h2>Investment Plans</h2>
+                <div class="plans">
+                    <div class="plan">
+                        <h3>Basic Plan</h3>
+                        <p>Invest from $10 - $100</p>
+                        <button onclick="selectPlan('Basic Plan', 10, '10% per month')">Select</button>
+                    </div>
+                    <div class="plan">
+                        <h3>Standard Plan</h3>
+                        <p>Invest from $101 - $500</p>
+                        <button onclick="selectPlan('Standard Plan', 101, '12% per month')">Select</button>
+                    </div>
+                    <div class="plan">
+                        <h3>Premium Plan</h3>
+                        <p>Invest from $501 - $5000</p>
+                        <button onclick="selectPlan('Premium Plan', 501, '15% per month')">Select</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script>
+        document.getElementById("logout").addEventListener("click", function() {
+            localStorage.removeItem("userId");
+            window.location.href = "login.html";
+        });
+        
+        document.getElementById("withdraw").addEventListener("click", function() {
+            window.location.href = "withdraw.html";
+        });
+
+        function selectPlan(plan, minAmount, growth) {
+            window.location.href = `investment-details.html?plan=${encodeURIComponent(plan)}&amount=${minAmount}&growth=${encodeURIComponent(growth)}`;
+        }
+
+        async function fetchInvestments() {
+            const userId = localStorage.getItem("userId");
+            if (!userId) {
+                window.location.href = "login.html";
+                return;
+            }
+            
+            try {
+                const response = await fetch(`http://localhost:5000/investments/${userId}`);
+                const investments = await response.json();
+                const container = document.getElementById("active-plans-list");
+                
+                if (investments.length === 0) {
+                    container.innerHTML = "<p>No active investments.</p>";
+                } else {
+                    container.innerHTML = investments.map(inv => `
+                        <div class="investment">
+                            <h3>${inv.plan_name}</h3>
+                            <p>Amount: $${inv.amount}</p>
+                            <p>Growth: ${inv.growth_rate}%</p>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error("Error fetching investments:", error);
+                document.getElementById("active-plans-list").innerHTML = "<p>Failed to load investments.</p>";
+            }
+        }
+        
+        fetchInvestments();
+    </script>
+</body>
+</html>
