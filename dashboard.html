@@ -46,49 +46,81 @@
     </div>
     
     <script>
+        // Logout function
         document.getElementById("logout").addEventListener("click", function() {
             localStorage.removeItem("userId");
             window.location.href = "login.html";
         });
-        
+
+        // Redirect to withdrawal page
         document.getElementById("withdraw").addEventListener("click", function() {
             window.location.href = "withdraw.html";
         });
 
+        // Handle plan selection
         function selectPlan(plan, minAmount, growth) {
             window.location.href = `investment-details.html?plan=${encodeURIComponent(plan)}&amount=${minAmount}&growth=${encodeURIComponent(growth)}`;
         }
 
+        // Fetch user investments
         async function fetchInvestments() {
             const userId = localStorage.getItem("userId");
             if (!userId) {
                 window.location.href = "login.html";
                 return;
             }
-            
+
             try {
                 const response = await fetch(`https://investx-backend.onrender.com/investments/${userId}`);
-                const investments = await response.json();
+                const data = await response.json();
                 const container = document.getElementById("active-plans-list");
-                
-                if (investments.length === 0) {
-                    container.innerHTML = "<p>No active investments.</p>";
-                } else {
-                    container.innerHTML = investments.map(inv => `
+
+                if (data.status === "success" && Array.isArray(data.investments) && data.investments.length > 0) {
+                    container.innerHTML = data.investments.map(inv => `
                         <div class="investment">
                             <h3>${inv.plan_name}</h3>
                             <p>Amount: $${inv.amount}</p>
                             <p>Growth: ${inv.growth_rate}%</p>
                         </div>
                     `).join('');
+                } else {
+                    container.innerHTML = "<p>No active investments.</p>";
                 }
             } catch (error) {
-                console.error("Error fetching investments:", error);
+                console.error("❌ Error fetching investments:", error);
                 document.getElementById("active-plans-list").innerHTML = "<p>Failed to load investments.</p>";
             }
         }
-        
+
         fetchInvestments();
+
+        // WebSocket Connection for real-time updates
+        const ws = new WebSocket("wss://investx-backend.onrender.com");
+
+        ws.onopen = function() {
+            console.log("✅ WebSocket Connected");
+        };
+
+        ws.onerror = function(error) {
+            console.error("❌ WebSocket Error:", error);
+        };
+
+        ws.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                console.log("📩 WebSocket Message Received:", data);
+                
+                if (data.type === "update") {
+                    fetchInvestments(); // Refresh investments on update
+                }
+            } catch (err) {
+                console.error("❌ WebSocket Message Parsing Error:", err);
+            }
+        };
+
+        ws.onclose = function(event) {
+            console.warn("⚠️ WebSocket Closed:", event.reason);
+        };
     </script>
 </body>
 </html>

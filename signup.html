@@ -19,8 +19,6 @@
     </div>
 
     <script>
-        const ws = new WebSocket("wss://investx-backend.onrender.com"); // Connect to WebSocket server
-
         document.getElementById("signup-form").addEventListener("submit", function(event) {
             event.preventDefault();
 
@@ -29,8 +27,15 @@
             const password = document.getElementById("password").value.trim();
             const message = document.getElementById("message");
 
-            if (username === "" || email === "" || password === "") {
+            // Basic validation
+            if (!username || !email || !password) {
                 message.innerText = "All fields are required!";
+                message.style.color = "red";
+                return;
+            }
+
+            if (!/^\S+@\S+\.\S+$/.test(email)) {
+                message.innerText = "Invalid email format!";
                 message.style.color = "red";
                 return;
             }
@@ -43,30 +48,49 @@
 
             const signupData = {
                 type: "signup",
-                username: username,
-                email: email,
-                password: password
+                username,
+                email,
+                password
             };
 
-            // Send signup data via WebSocket
-            ws.send(JSON.stringify(signupData));
-        });
+            const ws = new WebSocket("wss://investx-backend.onrender.com");
 
-        ws.onmessage = function(event) {
-            const response = JSON.parse(event.data);
-            const message = document.getElementById("message");
+            ws.onopen = function () {
+                console.log("✅ WebSocket connected, sending signup data...");
+                ws.send(JSON.stringify(signupData));
+            };
 
-            if (response.status === "success") {
-                message.innerText = "Signup successful! Redirecting...";
-                message.style.color = "green";
-                setTimeout(() => {
-                    window.location.href = "login.html";
-                }, 2000);
-            } else {
-                message.innerText = response.message;
+            ws.onmessage = function (event) {
+                try {
+                    const response = JSON.parse(event.data);
+
+                    if (response.status === "success") {
+                        message.innerText = "Signup successful! Redirecting...";
+                        message.style.color = "green";
+                        setTimeout(() => {
+                            window.location.href = "login.html";
+                        }, 2000);
+                    } else {
+                        message.innerText = response.message || "Signup failed!";
+                        message.style.color = "red";
+                    }
+                } catch (error) {
+                    message.innerText = "Error processing server response.";
+                    message.style.color = "red";
+                    console.error("❌ Response Parsing Error:", error);
+                }
+            };
+
+            ws.onerror = function (error) {
+                message.innerText = "Connection error. Please try again.";
                 message.style.color = "red";
-            }
-        };
+                console.error("❌ WebSocket Error:", error);
+            };
+
+            ws.onclose = function () {
+                console.log("🔌 WebSocket connection closed.");
+            };
+        });
     </script>
 </body>
 </html>

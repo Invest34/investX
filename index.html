@@ -31,33 +31,60 @@
             </section>
             
             <div class="auth-buttons">
-                <button onclick="location.href='signup.html'">Sign Up</button>
-                <button onclick="location.href='login.html'">Login</button>
+                <button id="signup-btn">Sign Up</button>
+                <button id="login-btn">Login</button>
+                <button id="logout-btn" style="display: none;">Logout</button>
             </div>
         </main>
     </div>
 
     <script>
-        async function fetchInvestments() {
-            const userId = 1; // Replace with dynamic user ID
-            try {
-                const response = await fetch(`https://investx-backend.onrender.com/investments/${userId}`);
-                const investments = await response.json();
-                displayInvestments(investments);
-            } catch (error) {
-                document.getElementById("investment-list").innerHTML = "Failed to load investments.";
-                console.error("Error fetching investments:", error);
+        document.getElementById("signup-btn").addEventListener("click", () => {
+            window.location.href = "signup.html";
+        });
+
+        document.getElementById("login-btn").addEventListener("click", () => {
+            window.location.href = "login.html";
+        });
+
+        document.getElementById("logout-btn").addEventListener("click", () => {
+            localStorage.removeItem("userId");
+            window.location.reload();
+        });
+
+        function checkAuth() {
+            const userId = localStorage.getItem("userId");
+            if (userId) {
+                document.getElementById("signup-btn").style.display = "none";
+                document.getElementById("login-btn").style.display = "none";
+                document.getElementById("logout-btn").style.display = "block";
+                fetchInvestments(userId);
+            } else {
+                document.getElementById("investment-list").innerHTML = "<p>Please log in to see your investments.</p>";
             }
         }
 
-        function displayInvestments(investments) {
-            const list = document.getElementById("investment-list");
-            list.innerHTML = "";
-            investments.forEach(inv => {
-                const listItem = document.createElement("li");
-                listItem.textContent = `${inv.plan} - $${inv.amount} (Growth: ${inv.growth_rate}%)`;
-                list.appendChild(listItem);
-            });
+        async function fetchInvestments(userId) {
+            try {
+                const response = await fetch(`https://investx-backend.onrender.com/investments/${userId}`);
+                const data = await response.json();
+
+                const list = document.getElementById("investment-list");
+                list.innerHTML = "";
+
+                if (data.status === "success" && Array.isArray(data.investments) && data.investments.length > 0) {
+                    data.investments.forEach(inv => {
+                        const listItem = document.createElement("li");
+                        listItem.textContent = `${inv.plan_name} - $${inv.amount} (Growth: ${inv.growth_rate}%)`;
+                        list.appendChild(listItem);
+                    });
+                } else {
+                    list.innerHTML = "<p>No active investments.</p>";
+                }
+            } catch (error) {
+                document.getElementById("investment-list").innerHTML = "<p>Failed to load investments.</p>";
+                console.error("❌ Error fetching investments:", error);
+            }
         }
 
         let cryptoChart;
@@ -67,7 +94,7 @@
                 const data = await response.json();
                 updateChart(data.bitcoin.usd, data.ethereum.usd);
             } catch (error) {
-                console.error("Failed to load market data.");
+                console.error("❌ Failed to load market data:", error);
             }
         }
         
@@ -97,7 +124,7 @@
             }
         }
         
-        fetchInvestments();
+        checkAuth();
         fetchCryptoPrices();
         setInterval(fetchCryptoPrices, 30000);
     </script>

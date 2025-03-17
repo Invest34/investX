@@ -18,27 +18,37 @@
     </div>
     
     <script>
-        document.getElementById("login-form").addEventListener("submit", function(event) {
+        const loginForm = document.getElementById("login-form");
+        const message = document.getElementById("message");
+
+        loginForm.addEventListener("submit", function(event) {
             event.preventDefault();
+            
             const email = document.getElementById("email").value.trim();
             const password = document.getElementById("password").value.trim();
-            const message = document.getElementById("message");
+
+            if (!email || !password) {
+                message.innerText = "Please enter both email and password.";
+                message.style.color = "red";
+                return;
+            }
 
             const socket = new WebSocket("wss://investx-backend.onrender.com");
 
             socket.onopen = function() {
+                console.log("✅ WebSocket connected, sending login request...");
                 socket.send(JSON.stringify({ type: "login", email, password }));
             };
 
             socket.onmessage = function(event) {
                 try {
                     const response = JSON.parse(event.data);
-                    
+
                     if (response.status === "success") {
-                        message.innerText = response.message;
+                        message.innerText = "Login successful! Redirecting...";
                         message.style.color = "green";
 
-                        // Store user info in localStorage (Optional)
+                        // Store user details in localStorage
                         localStorage.setItem("userId", response.userId);
                         localStorage.setItem("username", response.username);
 
@@ -46,18 +56,24 @@
                             window.location.href = "dashboard.html"; // Redirect to dashboard
                         }, 1000);
                     } else {
-                        message.innerText = response.message;
+                        message.innerText = response.message || "Invalid credentials.";
                         message.style.color = "red";
                     }
                 } catch (error) {
-                    message.innerText = "Error processing response.";
+                    message.innerText = "Error processing server response.";
                     message.style.color = "red";
+                    console.error("❌ Response Parsing Error:", error);
                 }
             };
 
-            socket.onerror = function() {
+            socket.onerror = function(error) {
                 message.innerText = "Connection error. Please try again.";
                 message.style.color = "red";
+                console.error("❌ WebSocket Error:", error);
+            };
+
+            socket.onclose = function() {
+                console.log("🔌 WebSocket connection closed.");
             };
         });
     </script>
