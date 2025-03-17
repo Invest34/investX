@@ -41,7 +41,7 @@
         async function fetchInvestments() {
             const userId = 1; // Replace with dynamic user ID
             try {
-                const response = await fetch(`http://localhost:5000/investments/${userId}`);
+                const response = await fetch(`https://investx-backend.onrender.com/investments/${userId}`);
                 const investments = await response.json();
                 displayInvestments(investments);
             } catch (error) {

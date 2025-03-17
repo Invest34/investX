@@ -1,6 +1,6 @@
 require("dotenv").config();
 const express = require("express");
-const mysql = require("mysql2");
+const { Pool } = require("pg");
 const cors = require("cors");
 const WebSocket = require("ws");
 const bcrypt = require("bcrypt");
@@ -13,21 +13,15 @@ const SALT_ROUNDS = 10;
 app.use(cors());
 app.use(express.json());
 
-// MySQL Connection
-const db = mysql.createConnection({
-    host: "localhost",
-    user: "root", // Change if necessary
-    password: "Brian23@", // Your MySQL password
-    database: "investxpro",
+// PostgreSQL Connection (Neon Database)
+const db = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false } // Required for Neon PostgreSQL
 });
 
-db.connect(err => {
-    if (err) {
-        console.error("Database connection failed:", err);
-    } else {
-        console.log("✅ Connected to MySQL");
-    }
-});
+db.connect()
+    .then(() => console.log("✅ Connected to PostgreSQL"))
+    .catch(err => console.error("❌ Database connection failed:", err));
 
 // WebSocket Server (For Login/Signup)
 const wss = new WebSocket.Server({ port: 5001 });
@@ -41,61 +35,59 @@ wss.on("connection", ws => {
         if (data.type === "signup") {
             try {
                 // Check if email already exists
-                db.query("SELECT * FROM users WHERE email = ?", [data.email], async (err, results) => {
-                    if (err) {
-                        ws.send(JSON.stringify({ status: "error", message: "Database error" }));
-                        return;
-                    }
-                    if (results.length > 0) {
-                        ws.send(JSON.stringify({ status: "error", message: "Email already in use" }));
-                        return;
-                    }
-                    
-                    // Hash password
-                    const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
-                    
-                    // Insert user into database
-                    db.query("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
-                    [data.username, data.email, hashedPassword], (err) => {
-                        if (err) {
-                            ws.send(JSON.stringify({ status: "error", message: "Signup failed" }));
-                        } else {
-                            ws.send(JSON.stringify({ status: "success", message: "Signup successful" }));
-                        }
-                    });
-                });
+                const emailCheck = await db.query("SELECT * FROM users WHERE email = $1", [data.email]);
+                if (emailCheck.rows.length > 0) {
+                    ws.send(JSON.stringify({ status: "error", message: "Email already in use" }));
+                    return;
+                }
+
+                // Hash password
+                const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
+                
+                // Insert user into database
+                await db.query(
+                    "INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)",
+                    [data.username, data.email, hashedPassword]
+                );
+
+                ws.send(JSON.stringify({ status: "success", message: "Signup successful" }));
             } catch (error) {
                 ws.send(JSON.stringify({ status: "error", message: "Internal server error" }));
             }
         }
 
         if (data.type === "login") {
-            db.query("SELECT * FROM users WHERE email = ?", [data.email], async (err, results) => {
-                if (err || results.length === 0) {
+            try {
+                const userQuery = await db.query("SELECT * FROM users WHERE email = $1", [data.email]);
+                if (userQuery.rows.length === 0) {
                     ws.send(JSON.stringify({ status: "error", message: "Invalid email or password" }));
                     return;
                 }
-                
-                const user = results[0];
+
+                const user = userQuery.rows[0];
                 const match = await bcrypt.compare(data.password, user.password_hash);
-                
+
                 if (match) {
                     ws.send(JSON.stringify({ status: "success", message: "Login successful", userId: user.id, username: user.username }));
                 } else {
                     ws.send(JSON.stringify({ status: "error", message: "Invalid email or password" }));
                 }
-            });
+            } catch (error) {
+                ws.send(JSON.stringify({ status: "error", message: "Database error" }));
+            }
         }
     });
 });
 
 // Fetch User Investments
-app.get("/investments/:userId", (req, res) => {
+app.get("/investments/:userId", async (req, res) => {
     const userId = req.params.userId;
-    db.query("SELECT * FROM investments WHERE user_id = ?", [userId], (err, results) => {
-        if (err) return res.status(500).json({ status: "error", message: "Database error" });
-        res.json({ status: "success", investments: results });
-    });
+    try {
+        const investments = await db.query("SELECT * FROM investments WHERE user_id = $1", [userId]);
+        res.json({ status: "success", investments: investments.rows });
+    } catch (err) {
+        res.status(500).json({ status: "error", message: "Database error" });
+    }
 });
 
 // Start Server

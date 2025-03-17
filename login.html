@@ -24,7 +24,7 @@
             const password = document.getElementById("password").value.trim();
             const message = document.getElementById("message");
 
-            const socket = new WebSocket("ws://localhost:5001");
+            const socket = new WebSocket("wss://investx-backend.onrender.com");
 
             socket.onopen = function() {
                 socket.send(JSON.stringify({ type: "login", email, password }));
